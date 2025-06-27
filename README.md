@@ -1,7 +1,7 @@
 # Water Quality Prediction – Multi-Target Regression
 
 This project focuses on predicting multiple water quality parameters using machine learning techniques, specifically a MultiOutputRegressor wrapped around a RandomForestRegressor. It was developed as part of an internship with **Edunet Foundation** in June 2025.
-**Sponsored AICTE and Shell**.
+**Sponsored by AICTE and Shell**.
 
 ---
 ## Overview
