@@ -57,9 +57,9 @@ Overall, the model showed good performance in predicting multiple water quality 
 ---
 ## Model and Files Saved
 
-- Trained model saved as `pollution_model.pkl`  
 - Feature columns saved as `model_columns.pkl`
-- model drive link: https://drive.google.com/file/d/1IO1dSxxuYlJyeTlQltoQKyKA55Pw8fE3/view?usp=sharing
+- Trained model saved as `pollution_model.pkl`
+- here is the  `pollution_model.pkl` drive link : https://drive.google.com/file/d/1IO1dSxxuYlJyeTlQltoQKyKA55Pw8fE3/view?usp=sharing
 
 These files can be loaded later to make predictions on new data without retraining.
 
