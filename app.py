@@ -1,13 +1,49 @@
+import os
 import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
 import pickle
+import subprocess
 
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1IO1dSxxuYlJyeTlQltoQKyKA55Pw8fE3"
 
-model = joblib.load('pollution_model.pkl')
-model_col = joblib.load('model_columns.pkl')
+MODEL_PATH = "pollution_model.pkl"
+COLUMNS_PATH = "model_columns.pkl"
 
+def ensure_gdown():
+    try:
+        import gdown
+    except ImportError:
+        with st.spinner("Installing gdown..."):
+            subprocess.check_call(["pip", "install", "gdown"])
+        import gdown
+    return gdown
+
+def download_model():
+    gdown = ensure_gdown()
+    if not os.path.exists(MODEL_PATH):
+        with st.spinner("⏬ Downloading model (this may take a moment)…"):
+            gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+
+def download_columns():
+    if not os.path.exists(COLUMNS_PATH):
+        import requests
+        with st.spinner("⏬ Downloading model columns from GitHub…"):
+            r = requests.get(COLUMNS_URL)
+            r.raise_for_status()
+            with open(COLUMNS_PATH, "wb") as f:
+                f.write(r.content)
+
+def load_model_and_columns():
+    download_model()
+    download_columns()
+    model = joblib.load(MODEL_PATH)
+    with open(COLUMNS_PATH, "rb") as f:
+        model_col = pickle.load(f)
+    return model, model_col
+
+model, model_col = load_model_and_columns()
 
 st.title('💧 Water Quality Prediction')
 st.write('This model predicts the water quality based on the following parameters: Year and Station ID.')
