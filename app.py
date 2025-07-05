@@ -4,74 +4,45 @@ import pandas as pd
 import numpy as np
 import joblib
 import pickle
+import subprocess
 import requests
 
-# ─── CONFIG ────────────────────────────────────────────────────────────
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1IO1dSxxuYlJyeTlQltoQKyKA55Pw8fE3"
 
-# 1) Your Google Drive file ID for the big model:
-DRIVE_FILE_ID = "1IO1dSxxuYlJyeTlQltoQKyKA55Pw8fE3"
-
-# 2) Your GitHub raw URL for the small columns pickle:
-COLUMNS_URL = (
-    "https://raw.githubusercontent.com/YourUserName/YourRepoName/"
-    "main/path/to/model_columns.pkl"
-)
-
-MODEL_PATH   = "pollution_model.pkl"
+MODEL_PATH = "pollution_model.pkl"
 COLUMNS_PATH = "model_columns.pkl"
 
+def ensure_gdown():
+    try:
+        import gdown
+    except ImportError:
+        with st.spinner("Installing gdown..."):
+            subprocess.check_call(["pip", "install", "gdown"])
+        import gdown
+    return gdown
 
-# ─── DRIVE DOWNLOADER ──────────────────────────────────────────────────
-
-def download_drive_file(file_id: str, dest: str):
-    """
-    Download a Google Drive file by ID, handling the “large file” confirm token.
-    """
-    URL = "https://docs.google.com/uc?export=download"
-    session = requests.Session()
-
-    # Initial request
-    resp = session.get(URL, params={"id": file_id}, stream=True)
-    token = None
-    for k, v in resp.cookies.items():
-        if k.startswith("download_warning"):
-            token = v
-    if token:
-        # Confirm and re-request
-        resp = session.get(URL, params={"id": file_id, "confirm": token}, stream=True)
-
-    resp.raise_for_status()
-    with open(dest, "wb") as f:
-        for chunk in resp.iter_content(32_768):
-            if chunk:
-                f.write(chunk)
-
-
-# ─── DOWNLOAD & LOAD ───────────────────────────────────────────────────
-
-def load_model_and_columns():
-    # 1) Download model if missing
+def download_model():
+    gdown = ensure_gdown()
     if not os.path.exists(MODEL_PATH):
-        with st.spinner("⏬ Downloading model from Google Drive…"):
-            download_drive_file(DRIVE_FILE_ID, MODEL_PATH)
+        with st.spinner("⏬ Downloading model (this may take a moment)…"):
+            gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
 
-    # 2) Download columns if missing
+def download_columns():
     if not os.path.exists(COLUMNS_PATH):
+        import requests
         with st.spinner("⏬ Downloading model columns from GitHub…"):
             r = requests.get(COLUMNS_URL)
             r.raise_for_status()
             with open(COLUMNS_PATH, "wb") as f:
                 f.write(r.content)
 
-    # 3) Load both pickles
+def load_model_and_columns():
+    download_model()
+    download_columns()
     model = joblib.load(MODEL_PATH)
     with open(COLUMNS_PATH, "rb") as f:
         model_col = pickle.load(f)
-
     return model, model_col
-
-
-# ─── INITIALIZE ────────────────────────────────────────────────────────
 
 model, model_col = load_model_and_columns()
 
@@ -139,3 +110,4 @@ if st.button('🔮 Predict'):
 
 
         st.info("The scoring is based on general acceptable limits and environmental impact. Specific regulations may vary.")
+
